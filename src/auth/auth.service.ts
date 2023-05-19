@@ -49,31 +49,18 @@ export class AuthService {
       access_token: 'token' + time,
     });
 
-    const dateConvert = new Date().getTime() - new Date('2005-05-20').getTime();
+    const dateMiliseconds =
+      new Date().getTime() - new Date(userAdd.birthday).getTime();
 
-    console.log(dateConvert * 3.168809e-11);
+    const dateYear = dateMiliseconds * 3.168809e-11;
 
-    const strs = userAdd.birthday.split(/[-/]+/);
-    const dayOfBirth: number = parseInt(strs[0]);
-    const monthOfBirth: number = parseInt(strs[1]);
-    const yearOfBirth: number = parseInt(strs[2]);
-
-    // console.log(monthOfBirth);
-    // console.log(date.getMonth() + 1);
+    console.log(dateYear);
 
     if (userAdd) {
-      if (date.getFullYear() - yearOfBirth >= 18) {
-        if (monthOfBirth < date.getMonth() + 1) {
-          if (dayOfBirth < date.getDate()) {
-            await this.usersRepository.save(userAdd);
-          } else {
-            return 'Chua du 18 tuoi';
-          }
-        } else {
-          return 'Chua du 18 tuoi';
-        }
+      if (dateYear >= 18) {
+        await this.usersRepository.save(userAdd);
       } else {
-        return 'Chua du 18 tuoi';
+        throw new BadRequestException('Chua du 18 tuoi');
       }
     }
 
