@@ -17,11 +17,11 @@ export class OrderEntity {
 
     @ManyToOne(() => UserEntity, (user) => user.id)
     @JoinColumn({ name: 'user_id' })
-    users: UserEntity[];
+    users: UserEntity;
 
     @ManyToOne(() => ProductEntity, (product) => product.id)
     @JoinColumn({ name: 'product_id' })
-    products: ProductEntity[];
+    products: ProductEntity;
 
     @CreateDateColumn({
         type: 'timestamp',
