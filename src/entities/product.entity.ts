@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    Entity,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { UserEntity } from './user.entity';
 import { OrderEntity } from './order.entity';
 
@@ -15,8 +21,8 @@ export class ProductEntity {
     description: string;
 
     @ManyToOne(() => UserEntity, (user) => user.id)
-    insertedByUser: UserEntity;
+    insertedByUser?: UserEntity;
 
     @OneToMany(() => OrderEntity, (order) => order.products)
-    productsBoughtByUser?: OrderEntity[];
+    productBoughtByUser?: OrderEntity;
 }

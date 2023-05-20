@@ -3,18 +3,29 @@ import { UserEntity } from '../entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderEntity } from '../entities/order.entity';
+import { ProductEntity } from 'src/entities/product.entity';
 
 @Injectable()
 export class UsersService {
     constructor(
         @InjectRepository(UserEntity)
         private usersRepository: Repository<UserEntity>,
-        @InjectRepository(OrderEntity)
+        @InjectRepository(ProductEntity)
         private ordersRepository: Repository<OrderEntity>,
     ) {}
 
     async getUsers() {
         return await this.usersRepository.find();
+    }
+
+    async getMe(userId: number) {
+        const user = await this.usersRepository.findOne({
+            where: {
+                id: userId,
+            },
+            relations: ['productInserted'],
+        });
+        return user;
     }
 
     // async createOrder(userId: number, productIds: Array<number>) {

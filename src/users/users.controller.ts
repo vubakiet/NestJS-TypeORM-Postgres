@@ -16,9 +16,7 @@ export class UsersController {
 
     @Get('getMe')
     async getMe(@getUser() user: any) {
-        console.log(user.userId);
-
-        return user;
+        return this.usersService.getMe(user.userId);
     }
 
     // @UseGuards(JwtAuthGuard)

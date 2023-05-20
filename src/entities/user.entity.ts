@@ -1,4 +1,11 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+} from 'typeorm';
 import { ProductEntity } from './product.entity';
 import { OrderEntity } from './order.entity';
 
@@ -6,23 +13,39 @@ import { OrderEntity } from './order.entity';
 export class UserEntity {
     @PrimaryGeneratedColumn()
     id: number;
-    @Column()
+    @Column({ nullable: true })
     firstname: string;
-    @Column()
+    @Column({ nullable: true })
     lastname: string;
-    @Column()
+    @Column({ nullable: true })
     birthday: string;
-    @Column()
+    @Column({ nullable: true })
     address: string;
     @Column()
     username: string;
     @Column()
     password: string;
-    @Column()
+    @Column({ nullable: true })
     permission: string;
-    @Column()
+    @Column({ nullable: true })
     access_token: string;
 
+    @CreateDateColumn({
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP(6)',
+    })
+    created_at: Date;
+
+    @UpdateDateColumn({
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP(6)',
+        onUpdate: 'CURRENT_TIMESTAMP(6)',
+    })
+    updated_at: Date;
+
+    @OneToMany(() => ProductEntity, (product) => product.insertedByUser)
+    productInserted?: ProductEntity;
+
     @OneToMany(() => OrderEntity, (order) => order.users)
-    userBought: OrderEntity[];
+    userBought?: OrderEntity;
 }
