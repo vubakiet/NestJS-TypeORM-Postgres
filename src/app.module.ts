@@ -6,23 +6,29 @@ import { UserEntity } from './users/entity/user.entity';
 import { UserModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ProductEntity } from './users/entity/product.entity';
+import { ConfigModule } from '@nestjs/config';
+import { OrderEntity } from './users/entity/order.entity';
 
 @Module({
-  imports: [
-    UserModule,
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'Kaito1412',
-      database: 'task1v1',
-      entities: [UserEntity, ProductEntity],
-      synchronize: true,
-    }),
-    AuthModule,
-  ],
-  controllers: [AppController],
-  providers: [AppService],
+    imports: [
+        UserModule,
+        ConfigModule.forRoot({
+            envFilePath: '.env',
+            isGlobal: true,
+        }),
+        TypeOrmModule.forRoot({
+            type: 'postgres',
+            host: process.env.POSTGRES_HOST,
+            port: +process.env.POSTGRES_PORT,
+            username: process.env.POSTGRES_USERNAME,
+            password: process.env.POSTGRES_PASSWORD,
+            database: process.env.POSTGRES_DATABASE,
+            entities: [UserEntity, ProductEntity, OrderEntity],
+            synchronize: true,
+        }),
+        AuthModule,
+    ],
+    controllers: [AppController],
+    providers: [AppService],
 })
 export class AppModule {}
