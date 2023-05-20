@@ -10,7 +10,7 @@ export class OrderService {
         @InjectRepository(UserEntity)
         private userRepository: Repository<UserEntity>,
         @InjectRepository(OrderEntity)
-        private orderService: Repository<OrderEntity>,
+        private orderRepository: Repository<OrderEntity>,
     ) {}
 
     async createOrder(userId: number, productIds: Array<number>) {
@@ -24,13 +24,37 @@ export class OrderService {
         }
 
         productIds.forEach(async (productId) => {
-            const orderCreated = await this.orderService.create({
+            const orderCreated = await this.orderRepository.create({
                 users: { id: userId },
                 products: { id: productId },
             });
 
-            const orderSaved = await this.orderService.save(orderCreated);
+            const orderSaved = await this.orderRepository.save(orderCreated);
             return orderSaved;
         });
+    }
+
+    async getOrders() {
+        return this.orderRepository.find();
+    }
+
+    async getOrderById(orderId: number) {
+        const order = this.orderRepository.findOne({
+            where: {
+                id: orderId,
+            },
+            relations:[
+                'users','users.userBought'
+            ]
+        });
+
+        if (!order) {
+            throw new HttpException(
+                'Khong tim thay Order',
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        return order;
     }
 }
