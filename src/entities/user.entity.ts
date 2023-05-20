@@ -23,9 +23,6 @@ export class UserEntity {
     @Column()
     access_token: string;
 
-    @OneToMany(() => ProductEntity, (product) => product.user)
-    products: ProductEntity[];
-
-    @OneToMany(() => OrderEntity, (order) => order.user)
-    orders: OrderEntity[];
+    @OneToMany(() => OrderEntity, (order) => order.users)
+    userBought: OrderEntity[];
 }

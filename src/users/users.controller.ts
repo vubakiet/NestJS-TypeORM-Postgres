@@ -1,71 +1,30 @@
-import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Param,
-    Req,
-    UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateProductDto } from './dtos/create-product.dto';
-import { UpdateProductDto } from './dtos/update-product.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { Request } from 'express';
+import { getUser } from './decorator';
+import { AuthGuard, JwtAuthGuard } from 'src/auth/guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
     constructor(private usersService: UsersService) {}
 
-    @UseGuards(AuthGuard)
-    @Get('getUsers')
-    async getUsers(@Req() req: Request) {
-        console.log({
-            user: req.headers,
-        });
+    // @UseGuards(AuthGuard)
+    // @Get('getUsers')
+    // async getUsers(@Req() req: Request) {
+    //     return await this.usersService.getUsers();
+    // }
 
-        return await this.usersService.getUsers();
+    @Get('getMe')
+    async getMe(@getUser() user: any) {
+        console.log(user.userId);
+
+        return user;
     }
 
-    
-
-    @Get('getProductsByUserId/:userId')
-    async getProductsByUserId(@Param() userId: number) {
-        return await this.usersService.getProductsByUserId(userId['userId']);
-    }
-
-    @Post('createProductByUserId/:userId')
-    async createProductByUserId(
-        @Param() userId: number,
-        @Body() product: CreateProductDto,
-    ) {
-        return await this.usersService.createProductByUserId(
-            userId['userId'],
-            product,
-        );
-    }
-
-    @Post('updateProductByUserId/:userId/:productId')
-    async updateProductByUserId(
-        @Param() userId: number,
-        @Param() productId: number,
-        @Body() product: UpdateProductDto,
-    ) {
-        return await this.usersService.updateProductByUserId(
-            userId['userId'],
-            productId['productId'],
-            product,
-        );
-    }
-
-    @Post('deleteProductByUserId/:uId/:pId')
-    async deleteProductByUserId(
-        @Param() userId: number,
-        @Param() productId: number,
-    ) {
-        return await this.usersService.deleteProductByUserId(
-            userId['uId'],
-            productId['pId'],
-        );
-    }
+    // @UseGuards(JwtAuthGuard)
+    // @Post('createOrder')
+    // async createOrder(@getUser() user: any, @Body() productIds: Array<number>) {
+    //     const userId = user.userId;
+    //     return await this.usersService.createOrder(userId, productIds);
+    // }
 }

@@ -2,11 +2,11 @@ import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from 'src/users/entity/user.entity';
+import { UserEntity } from 'src/entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
-import { ProductEntity } from 'src/users/entity/product.entity';
-import { AuthGuard } from './auth.guard';
+import { ProductEntity } from 'src/entities/product.entity';
+import { JwtStrategy } from './strategy';
 
 @Module({
     imports: [
@@ -18,6 +18,6 @@ import { AuthGuard } from './auth.guard';
         }),
     ],
     controllers: [AuthController],
-    providers: [AuthService],
+    providers: [AuthService, JwtStrategy],
 })
 export class AuthModule {}
