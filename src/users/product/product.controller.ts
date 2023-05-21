@@ -18,6 +18,11 @@ import { UpdateProductDto } from '../dtos/update-product.dto';
 export class ProductController {
     constructor(private productService: ProductService) {}
 
+    @Get('getProductById/:id')
+    async getProductById(@Param() productId: number) {
+        return this.productService.getProductById(productId['id']);
+    }
+
     @Get('getProducts')
     async getProductsByUser(@getUser() user: any) {
         const userId = user.userId;
@@ -59,5 +64,4 @@ export class ProductController {
             productId['pId'],
         );
     }
-
 }

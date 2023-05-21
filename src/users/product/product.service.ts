@@ -15,6 +15,15 @@ export class ProductService {
         private productRepository: Repository<ProductEntity>,
     ) {}
 
+    async getProductById(productId: number) {
+        return this.productRepository.findOne({
+            where: {
+                id: productId,
+            },
+            relations: ['productBoughtByUser.users'],
+        });
+    }
+
     async getProductsByUser(userId: number) {
         return await this.productRepository.findBy({
             insertedByUser: { id: userId },
