@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderEntity } from '../entities/order.entity';
 import { ProductEntity } from 'src/entities/product.entity';
+import { UserResponse } from './user.response';
 
 @Injectable()
 export class UsersService {
@@ -15,7 +16,8 @@ export class UsersService {
     ) {}
 
     async getUsers() {
-        return await this.usersRepository.find();
+        const data = await this.usersRepository.find();
+        return UserResponse.mapToList(data);
     }
 
     async getMe(userId: number) {
@@ -25,7 +27,7 @@ export class UsersService {
             },
             relations: ['productInserted'],
         });
-        return user;
+        return new UserResponse(user);
     }
 
     // async createOrder(userId: number, productIds: Array<number>) {

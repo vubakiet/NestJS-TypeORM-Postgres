@@ -9,14 +9,21 @@ export class OrderController {
     constructor(private orderService: OrderService) {}
 
     @Post('createOrder')
-    async createOrder(@getUser() user: any, @Body() productIds: Array<number>) {
-        const userId = user.userId;
+    async createOrder(
+        @getUser() userId: number,
+        @Body() productIds: Array<number>,
+    ) {
         return this.orderService.createOrder(userId, productIds);
     }
 
     @Get('getOrders')
     async getOrders() {
         return this.orderService.getOrders();
+    }
+
+    @Get('getOrdersByUser')
+    async getOrdersByUser(@getUser() userId: number) {
+        return this.orderService.getOrdersByUser(userId);
     }
 
     @Get('getOrderById/:id')

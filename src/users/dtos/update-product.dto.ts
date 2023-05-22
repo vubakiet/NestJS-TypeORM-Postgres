@@ -1,5 +1,5 @@
 export class UpdateProductDto {
   name: string;
-  prise: string;
+  price: string;
   description: string;
 }

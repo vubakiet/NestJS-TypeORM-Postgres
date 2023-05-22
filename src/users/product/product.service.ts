@@ -2,7 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductEntity } from 'src/entities/product.entity';
 import { UserEntity } from 'src/entities/user.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { CreateProductDto } from '../dtos/create-product.dto';
 import { UpdateProductDto } from '../dtos/update-product.dto';
 
@@ -16,11 +16,31 @@ export class ProductService {
     ) {}
 
     async getProductById(productId: number) {
-        return this.productRepository.findOne({
+        const product = this.productRepository.findOneBy({ id: productId });
+
+        if (!product) {
+            throw new HttpException(
+                'Product ko ton tai',
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        return product;
+    }
+
+    async getAvailableProduct() {
+        return await this.productRepository.find({
             where: {
-                id: productId,
+                status: 1,
             },
-            relations: ['productBoughtByUser.users'],
+        });
+    }
+
+    async getDeletedProduct() {
+        return await this.productRepository.find({
+            where: {
+                status: 0,
+            },
         });
     }
 
@@ -37,15 +57,39 @@ export class ProductService {
             throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
         }
 
-        const newProduct = await this.productRepository.create({
-            ...product,
+        const inputNameSplit = product.name
+            .toLowerCase()
+            .trim()
+            .replace(/\s/g, '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+
+        const productExists = await this.productRepository.findOne({
+            where: {
+                name: product.name,
+                nameSplit: inputNameSplit,
+            },
+        });
+
+        if (productExists) {
+            throw new HttpException(
+                'Product da ton tai',
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        const productCreated = await this.productRepository.create({
+            name: product.name,
+            nameSplit: inputNameSplit,
+            price: product.price,
+            description: product.description,
+            status: 1,
             insertedByUser: { id: userId },
         });
-        console.log(newProduct);
 
-        await this.productRepository.save(newProduct);
+        const productSaved = await this.productRepository.save(productCreated);
 
-        return user;
+        return productSaved;
     }
 
     async updateProductByUser(
@@ -66,29 +110,66 @@ export class ProductService {
             );
         }
 
-        if (user) {
-            const productFound = await this.productRepository.findOne({
-                where: {
-                    insertedByUser: user,
-                    id: productId,
-                },
-            });
+        const productFound = await this.productRepository.findOne({
+            where: {
+                id: productId,
+            },
+        });
 
-            if (!productFound) {
-                throw new HttpException(
-                    'Khong tim thay san pham',
-                    HttpStatus.BAD_REQUEST,
-                );
-            }
+        if (!productFound) {
+            throw new HttpException(
+                'Khong tim thay san pham',
+                HttpStatus.BAD_REQUEST,
+            );
+        }
 
+        console.log(product);
+
+        const inputNameSplit = product.name
+            .toLowerCase()
+            .trim()
+            .replace(/\s/g, '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+
+        const productNameExists = await this.productRepository.findOne({
+            where: {
+                nameSplit: inputNameSplit,
+            },
+        });
+
+        console.log(productFound);
+
+        if (productFound.nameSplit == inputNameSplit) {
             await this.productRepository.update(
                 { id: productId },
                 {
-                    ...product,
+                    name: product.name,
+                    nameSplit: inputNameSplit,
+                    price: product.price,
+                    description: product.description,
                 },
             );
-            return product;
+        } else {
+            if (productNameExists) {
+                throw new HttpException(
+                    `Product voi name ${product.name} da ton tai`,
+                    HttpStatus.BAD_REQUEST,
+                );
+            } else {
+                await this.productRepository.update(
+                    { id: productId },
+                    {
+                        name: product.name,
+                        nameSplit: inputNameSplit,
+                        price: product.price,
+                        description: product.description,
+                    },
+                );
+            }
         }
+
+        return product;
     }
 
     async deleteProductByUser(userId: number, productId: number) {
@@ -112,9 +193,14 @@ export class ProductService {
             );
         }
 
-        const productDeleted = await this.productRepository.delete({
-            id: productId,
-        });
+        if (productFound.status == 0) {
+            return 'San pham da xoa';
+        }
+
+        const productDeleted = await this.productRepository.update(
+            { id: productId },
+            { status: 0 },
+        );
         if (productDeleted) {
             return 'Xoa thanh cong';
         }

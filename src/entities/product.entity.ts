@@ -15,10 +15,14 @@ export class ProductEntity {
 
     @Column()
     name: string;
+    @Column({ nullable: true })
+    nameSplit: string;
     @Column()
     price: string;
     @Column()
     description: string;
+    @Column({ nullable: true })
+    status: number;
 
     @ManyToOne(() => UserEntity, (user) => user.id)
     insertedByUser?: UserEntity;

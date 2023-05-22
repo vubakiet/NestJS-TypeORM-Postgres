@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { getUser } from './decorator';
 import { AuthGuard, JwtAuthGuard } from 'src/auth/guard';
@@ -8,14 +8,16 @@ import { AuthGuard, JwtAuthGuard } from 'src/auth/guard';
 export class UsersController {
     constructor(private usersService: UsersService) {}
 
-    // @UseGuards(AuthGuard)
-    // @Get('getUsers')
-    // async getUsers(@Req() req: Request) {
-    //     return await this.usersService.getUsers();
-    // }
+    @UseGuards(AuthGuard)
+    @Get('getUsers')
+    async getUsers(@Req() req: Request) {
+        return await this.usersService.getUsers();
+    }
 
     @Get('getMe')
-    async getMe(@getUser() user: any) {
+    async getMe(@getUser() user: any, @getUser() userId: number) {
+        console.log(userId);
+
         return this.usersService.getMe(user.userId);
     }
 

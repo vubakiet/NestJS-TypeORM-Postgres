@@ -16,15 +16,8 @@ export class AuthService {
     ) {}
 
     async register(userRegister: UserRegister) {
-        const {
-            firstname,
-            lastname,
-            birthday,
-            address,
-            username,
-            password,
-            permission,
-        } = userRegister;
+        const { firstname, lastname, birthday, address, username, password } =
+            userRegister;
         const date = new Date();
         const time = date.getTime();
 
@@ -45,7 +38,6 @@ export class AuthService {
             address: address,
             username: username,
             password: password,
-            permission: permission,
             access_token: 'token' + time,
         });
 
@@ -81,11 +73,11 @@ export class AuthService {
         }
 
         const payload = {
-            username: (await user).username,
-            sub: (await user).id,
+            username: user.username,
+            sub: user.id,
+            permission: user.permission,
         };
         const access_token = await this.jwtService.signAsync(payload);
-        console.log(payload);
 
         await this.usersRepository.update(
             { id: user.id },

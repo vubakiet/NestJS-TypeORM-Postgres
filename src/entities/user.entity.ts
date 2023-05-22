@@ -8,6 +8,8 @@ import {
 } from 'typeorm';
 import { ProductEntity } from './product.entity';
 import { OrderEntity } from './order.entity';
+import { Role } from 'src/auth/enum';
+import { NotificationUserEntity } from './notification-user.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -25,8 +27,8 @@ export class UserEntity {
     username: string;
     @Column()
     password: string;
-    @Column({ nullable: true })
-    permission: string;
+    @Column({ type: 'enum', enum: Role, default: Role.USER })
+    permission: Role;
     @Column({ nullable: true })
     access_token: string;
 
@@ -48,4 +50,7 @@ export class UserEntity {
 
     @OneToMany(() => OrderEntity, (order) => order.users)
     userBought?: OrderEntity;
+
+    @OneToMany(() => NotificationUserEntity, (notiUser) => notiUser.users)
+    userNotice?: NotificationUserEntity;
 }

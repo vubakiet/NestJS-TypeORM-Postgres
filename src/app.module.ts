@@ -8,6 +8,8 @@ import { AuthModule } from './auth/auth.module';
 import { ProductEntity } from './entities/product.entity';
 import { ConfigModule } from '@nestjs/config';
 import { OrderEntity } from './entities/order.entity';
+import { NotificationEntity } from './entities/notification.entity';
+import { NotificationUserEntity } from './entities/notification-user.entity';
 
 @Module({
     imports: [
@@ -23,7 +25,7 @@ import { OrderEntity } from './entities/order.entity';
             username: process.env.POSTGRES_USERNAME,
             password: process.env.POSTGRES_PASSWORD,
             database: process.env.POSTGRES_DATABASE,
-            entities: [UserEntity, ProductEntity, OrderEntity],
+            entities: [UserEntity, ProductEntity, OrderEntity, NotificationEntity, NotificationUserEntity],
             synchronize: true,
         }),
         AuthModule,

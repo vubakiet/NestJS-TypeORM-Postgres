@@ -5,6 +5,5 @@ export class UserRegister {
   address: string;
   username: string;
   password: string;
-  permission: string;
   accress_token: string;
 }
