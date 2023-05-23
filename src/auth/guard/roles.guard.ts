@@ -9,11 +9,7 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-    constructor(
-        private reflector: Reflector,
-        @InjectRepository(UserEntity)
-        private userRepository: Repository<UserEntity>,
-    ) {}
+    constructor(private reflector: Reflector) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const requireRoles = this.reflector.getAllAndOverride<Role[]>(
@@ -27,12 +23,6 @@ export class RolesGuard implements CanActivate {
 
         const { user } = context.switchToHttp().getRequest();
 
-        const userCreated = await this.userRepository.findOneBy({
-            id: user?.userId,
-        });
-
-        return requireRoles.some((role) =>
-            userCreated.permission?.includes(role),
-        );
+        return requireRoles.some((role) => user.permission?.includes(role));
     }
 }

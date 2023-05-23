@@ -1,5 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { NotificationUserEntity } from './notification-user.entity';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('notification')
 export class NotificationEntity {
@@ -9,9 +8,10 @@ export class NotificationEntity {
     @Column({ nullable: true })
     message: string;
 
-    @OneToMany(
-        () => NotificationUserEntity,
-        (notiUser) => notiUser.notifications,
-    )
-    notificationTo: NotificationUserEntity[];
+    @Column({
+        type: Number,
+        array: true,
+        nullable: true,
+    })
+    user_ids: number[];
 }

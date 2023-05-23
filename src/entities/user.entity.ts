@@ -9,7 +9,6 @@ import {
 import { ProductEntity } from './product.entity';
 import { OrderEntity } from './order.entity';
 import { Role } from 'src/auth/enum';
-import { NotificationUserEntity } from './notification-user.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -50,7 +49,4 @@ export class UserEntity {
 
     @OneToMany(() => OrderEntity, (order) => order.users)
     userBought?: OrderEntity;
-
-    @OneToMany(() => NotificationUserEntity, (notiUser) => notiUser.users)
-    userNotice?: NotificationUserEntity;
 }
