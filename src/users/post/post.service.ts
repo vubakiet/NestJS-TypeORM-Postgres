@@ -6,6 +6,8 @@ import { CreatePostDto } from './dtos/create-post.dto';
 import { UserEntity } from 'src/entities/user.entity';
 import { UpdatePostDto } from './dtos/update-post.dto';
 import { DefaultStatus } from 'src/enum/status-default.enum';
+import { ReactEnity } from 'src/entities/react.entity';
+import { ReactionStatus } from 'src/enum/reactions-status.enum';
 @Injectable()
 export class PostService {
     constructor(
@@ -13,6 +15,8 @@ export class PostService {
         private postRepository: Repository<PostEntity>,
         @InjectRepository(UserEntity)
         private userRepository: Repository<UserEntity>,
+        @InjectRepository(ReactEnity)
+        private reactRepository: Repository<ReactEnity>,
     ) {}
 
     async getPosts() {
@@ -46,8 +50,20 @@ export class PostService {
             content: content,
             userId: user,
         });
-
         const postSaved = await this.postRepository.save(postCreated);
+
+        if (postSaved) {
+            const postReactionCreated = this.reactRepository.create({
+                user: {
+                    id: userId,
+                },
+                reactions: ReactionStatus.DEFAULT,
+                post: {
+                    id: postSaved.id,
+                },
+            });
+            await this.reactRepository.save(postReactionCreated);
+        }
 
         return postSaved;
     }

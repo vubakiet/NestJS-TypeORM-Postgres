@@ -5,6 +5,7 @@ import { ReactEnity } from 'src/entities/react.entity';
 import { UserEntity } from 'src/entities/user.entity';
 import { ReactionStatus } from 'src/enum/reactions-status.enum';
 import { Repository } from 'typeorm';
+import { UserResponse } from '../user.response';
 
 @Injectable()
 export class ReactionService {
@@ -79,8 +80,6 @@ export class ReactionService {
     }
 
     async getReactionsByPostId(postId: number) {
-        console.log(postId);
-
         const reactsUserPost = await this.reactRepository.find({
             where: {
                 post: {
@@ -90,20 +89,30 @@ export class ReactionService {
             relations: { user: true },
         });
 
-
-        const usersReaction = reactsUserPost.map((react) => react.user);
-
-        console.log(usersReaction);
+        const usersReaction = UserResponse.mapToList(
+            reactsUserPost.map((react) => react.user),
+        );
 
         const reactionsArr = reactsUserPost.map((react) => react.reactions);
 
-        const countUnlike = reactionsArr.filter((x) => x == 0).length;
-        const countLike = reactionsArr.filter((x) => x == 1).length;
+        let countLike = 0;
+        let countUnlike = 0;
+
+        console.log(reactionsArr);
+
+        reactionsArr.forEach((react) => {
+            if (react == 0) {
+                countUnlike++;
+            }
+            if (react == 1) {
+                countLike++;
+            }
+        });
 
         const like = `So nguoi like: ${countLike}`;
         const unlike = `So nguoi Unlike: ${countUnlike}`;
         const totalReactions = `Tong so nguoi reaction: ${reactionsArr.length}`;
 
-        return { totalReactions, like, unlike };
+        return { usersReaction, totalReactions, like, unlike };
     }
 }
