@@ -8,6 +8,8 @@ import { OrderEntity } from '../entities/order.entity';
 import { ProductModule } from './product/product.module';
 import { OrderModule } from './order/order.module';
 import { NotificationModule } from './notification/notification.module';
+import { PostModule } from './post/post.module';
+import { ReactionModule } from './reaction/reaction.module';
 
 @Module({
     imports: [
@@ -15,6 +17,8 @@ import { NotificationModule } from './notification/notification.module';
         ProductModule,
         OrderModule,
         NotificationModule,
+        PostModule,
+        ReactionModule,
     ],
     controllers: [UsersController],
     providers: [UsersService],

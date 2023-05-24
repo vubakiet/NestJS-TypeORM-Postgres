@@ -9,6 +9,8 @@ import { ProductEntity } from './entities/product.entity';
 import { ConfigModule } from '@nestjs/config';
 import { OrderEntity } from './entities/order.entity';
 import { NotificationEntity } from './entities/notification.entity';
+import { PostEntity } from './entities/post.entity';
+import { ReactEnity } from './entities/react.entity';
 
 @Module({
     imports: [
@@ -29,6 +31,8 @@ import { NotificationEntity } from './entities/notification.entity';
                 ProductEntity,
                 OrderEntity,
                 NotificationEntity,
+                PostEntity,
+                ReactEnity,
             ],
             synchronize: true,
         }),

@@ -2,8 +2,8 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NotificationEntity } from 'src/entities/notification.entity';
 import { UserEntity } from 'src/entities/user.entity';
-import { In, Repository } from 'typeorm';
-import { CreateNotifyDto } from '../dtos/create-notifty.dto';
+import { In, MoreThan, Repository } from 'typeorm';
+import { CreateNotifyDto } from './dtos/create-notifty.dto';
 import {
     IPaginationOptions,
     Pagination,
@@ -154,10 +154,10 @@ export class NotificationService {
                 );
             }
 
-            const skipByNotifyId = (page - 1) * limit + notifyId;
-
             const notifyList = await this.notificationRepository.find({
-                skip: skipByNotifyId,
+                where: {
+                    id: MoreThan(notifyId),
+                },
                 take: limit,
             });
 

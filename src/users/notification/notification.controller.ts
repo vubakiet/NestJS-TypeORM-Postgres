@@ -14,7 +14,7 @@ import { JwtAuthGuard } from 'src/auth/guard';
 import { Roles } from 'src/auth/decorator';
 import { Role } from 'src/auth/enum';
 import { getUser } from '../decorator';
-import { CreateNotifyDto } from '../dtos/create-notifty.dto';
+import { CreateNotifyDto } from './dtos/create-notifty.dto';
 import {
     IPaginationOptions,
     Pagination,
