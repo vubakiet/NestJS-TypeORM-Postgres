@@ -10,6 +10,7 @@ import { OrderModule } from './order/order.module';
 import { NotificationModule } from './notification/notification.module';
 import { PostModule } from './post/post.module';
 import { ReactionModule } from './reaction/reaction.module';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
     imports: [
@@ -19,6 +20,7 @@ import { ReactionModule } from './reaction/reaction.module';
         NotificationModule,
         PostModule,
         ReactionModule,
+        CommentModule,
     ],
     controllers: [UsersController],
     providers: [UsersService],

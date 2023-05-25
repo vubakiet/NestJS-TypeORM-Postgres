@@ -10,6 +10,7 @@ import { ProductEntity } from './product.entity';
 import { OrderEntity } from './order.entity';
 import { Role } from 'src/auth/enum';
 import { PostEntity } from './post.entity';
+import { CommentEntity } from './comment.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -53,4 +54,7 @@ export class UserEntity {
 
     @OneToMany(() => PostEntity, (post) => post.userId)
     postCreated?: PostEntity;
+
+    @OneToMany(() => CommentEntity, (comment) => comment.user)
+    user_comment?: CommentEntity;
 }

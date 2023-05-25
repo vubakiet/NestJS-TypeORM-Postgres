@@ -11,6 +11,7 @@ import { OrderEntity } from './entities/order.entity';
 import { NotificationEntity } from './entities/notification.entity';
 import { PostEntity } from './entities/post.entity';
 import { ReactEnity } from './entities/react.entity';
+import { CommentEntity } from './entities/comment.entity';
 
 @Module({
     imports: [
@@ -33,6 +34,7 @@ import { ReactEnity } from './entities/react.entity';
                 NotificationEntity,
                 PostEntity,
                 ReactEnity,
+                CommentEntity,
             ],
             synchronize: true,
         }),

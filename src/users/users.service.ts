@@ -25,9 +25,9 @@ export class UsersService {
             where: {
                 id: userId,
             },
-            relations: ['productInserted'],
+            relations: ['productInserted', 'user_comment'],
         });
-        return new UserResponse(user);
+        return user;
     }
 
     // async createOrder(userId: number, productIds: Array<number>) {
