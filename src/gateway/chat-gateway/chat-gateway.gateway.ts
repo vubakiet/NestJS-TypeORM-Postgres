@@ -15,6 +15,10 @@ interface User {
     name: string;
 }
 
+interface JoinConversationDto{
+    conversation_id: number;
+}
+
 @WebSocketGateway({
     cors: {
         origin: '*',
@@ -53,6 +57,15 @@ export class ChatGateway
         }
     }
 
+    @SubscribeMessage('joinRoom')
+    handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() data: JoinConversationDto){
+        console.log('Joining room:', data.conversation_id?.toString());
+        console.log(client.id);
+        
+        client.join(data.conversation_id?.toString())        
+        this.server.to(data.conversation_id?.toString()).emit('JoinedRoom', {message: 'success'})
+    }
+
     @SubscribeMessage('newMessage')
     handleMessage(
         @ConnectedSocket() client: Socket,
@@ -66,4 +79,6 @@ export class ChatGateway
             content: payload,
         });
     }
+
+
 }
