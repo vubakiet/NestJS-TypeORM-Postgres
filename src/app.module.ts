@@ -12,6 +12,9 @@ import { NotificationEntity } from './entities/notification.entity';
 import { PostEntity } from './entities/post.entity';
 import { ReactEnity } from './entities/react.entity';
 import { CommentEntity } from './entities/comment.entity';
+import { GatewayModule } from './gateway/gateway.module';
+import { RoomEntity } from './entities/room.entity';
+import { MessageEntity } from './entities/message.entity';
 
 @Module({
     imports: [
@@ -35,10 +38,13 @@ import { CommentEntity } from './entities/comment.entity';
                 PostEntity,
                 ReactEnity,
                 CommentEntity,
+                RoomEntity,
+                MessageEntity,
             ],
             synchronize: true,
         }),
         AuthModule,
+        GatewayModule,
     ],
     controllers: [AppController],
     providers: [AppService],

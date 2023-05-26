@@ -11,6 +11,7 @@ import { OrderEntity } from './order.entity';
 import { Role } from 'src/auth/enum';
 import { PostEntity } from './post.entity';
 import { CommentEntity } from './comment.entity';
+import { MessageEntity } from './message.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -57,4 +58,7 @@ export class UserEntity {
 
     @OneToMany(() => CommentEntity, (comment) => comment.user)
     user_comment?: CommentEntity;
+
+    @OneToMany(() => MessageEntity, (message) => message.user)
+    user_message?: MessageEntity[];
 }
