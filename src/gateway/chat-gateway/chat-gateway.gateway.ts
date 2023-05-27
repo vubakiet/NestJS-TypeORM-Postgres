@@ -110,6 +110,8 @@ export class ChatGateway
         const token = client.handshake.headers.authorization;
 
         if (token) {
+            console.log(token);
+
             client.join(joinRoom.room_name?.toString());
         }
 
@@ -148,7 +150,7 @@ export class ChatGateway
         if (response === RoomStatus.USERROOMEXISTED) {
             client.leave(leaveRoom.room_name);
             console.log(client.rooms);
-            
+
             this.server.emit('leavedRoom', {
                 message: 'Da roi cuoc tro chuyen',
             });
@@ -170,9 +172,10 @@ export class ChatGateway
             token,
             sendMessage,
         );
-        console.log(StartedChat);
 
         if (StartedChat === RoomStatus.STARTCHAT) {
+            console.log(client.rooms);
+
             this.server
                 .to(sendMessage.room_name?.toString())
                 .emit('onMessage', {

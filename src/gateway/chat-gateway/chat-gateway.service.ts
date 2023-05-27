@@ -21,7 +21,7 @@ export class ChatGatewayService {
         private messageRepository: Repository<MessageEntity>,
     ) {}
 
-    async handleCreateRoom(token:string, createRoom: CreateRoomDto) {
+    async handleCreateRoom(token: string, createRoom: CreateRoomDto) {
         const { room_name } = createRoom;
 
         const user = await this.userRepository.findOneBy({
@@ -74,7 +74,7 @@ export class ChatGatewayService {
         return RoomStatus.STARTCHAT;
     }
 
-    async handleLeaveRoom(token: string, leaveRoom: LeaveRoomDto){
+    async handleLeaveRoom(token: string, leaveRoom: LeaveRoomDto) {
         const { room_name } = leaveRoom;
 
         const room = await this.roomRepository.findOneBy({
@@ -93,13 +93,13 @@ export class ChatGatewayService {
 
         const userMessage = await this.messageRepository.find({
             where: {
-                user: {id: user.id},
-                room: {id: room.id}
-            }
-        })
+                user: { id: user.id },
+                room: { id: room.id },
+            },
+        });
 
-        if(userMessage){
-            return RoomStatus.USERROOMEXISTED
+        if (userMessage) {
+            return RoomStatus.USERROOMEXISTED;
         }
     }
 
@@ -107,7 +107,6 @@ export class ChatGatewayService {
         const { content, room_name } = sendMessage;
 
         console.log(content);
-        
 
         const user = await this.userRepository.findOneBy({
             access_token: token,
@@ -128,6 +127,7 @@ export class ChatGatewayService {
             user: { id: user.id },
             room: { id: room.id },
         });
+        console.log(messageCreating);
 
         await this.messageRepository.save(messageCreating);
 
