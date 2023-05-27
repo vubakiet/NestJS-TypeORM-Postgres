@@ -8,6 +8,7 @@ import { CreateRoomDto } from './dtos/create-room.dto';
 import { RoomStatus } from 'src/enum/room-status.enum';
 import { JoinRoomDto } from './dtos/join-room.dto';
 import { SendMessageDto } from './dtos/send-message.dto';
+import { LeaveRoomDto } from './dtos/leave-room.dto';
 
 @Injectable()
 export class ChatGatewayService {
@@ -71,6 +72,35 @@ export class ChatGatewayService {
         await this.messageRepository.save(messageCreating);
 
         return RoomStatus.STARTCHAT;
+    }
+
+    async handleLeaveRoom(token: string, leaveRoom: LeaveRoomDto){
+        const { room_name } = leaveRoom;
+
+        const room = await this.roomRepository.findOneBy({
+            name: room_name,
+        });
+        if (!room) {
+            return RoomStatus.NOTEXISTSROOM;
+        }
+
+        const user = await this.userRepository.findOneBy({
+            access_token: token,
+        });
+        if (!user) {
+            return RoomStatus.NOTEXISTSUSER;
+        }
+
+        const userMessage = await this.messageRepository.find({
+            where: {
+                user: {id: user.id},
+                room: {id: room.id}
+            }
+        })
+
+        if(userMessage){
+            return RoomStatus.USERROOMEXISTED
+        }
     }
 
     async handleSendMessage(token: string, sendMessage: SendMessageDto) {

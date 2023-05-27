@@ -14,6 +14,7 @@ import { JoinRoomDto } from './dtos/join-room.dto';
 import { ChatGatewayService } from './chat-gateway.service';
 import { RoomStatus } from 'src/enum/room-status.enum';
 import { SendMessageDto } from './dtos/send-message.dto';
+import { LeaveRoomDto } from './dtos/leave-room.dto';
 
 interface User {
     id: string;
@@ -132,6 +133,32 @@ export class ChatGateway
         }
     }
 
+    @SubscribeMessage('leaveRoom')
+    async handleLeaveRoom(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() leaveRoom: LeaveRoomDto,
+    ) {
+        const token = client.handshake.headers.authorization;
+
+        const response = await this.chatService.handleLeaveRoom(
+            token,
+            leaveRoom,
+        );
+
+        if (response === RoomStatus.USERROOMEXISTED) {
+            client.leave(leaveRoom.room_name);
+            console.log(client.rooms);
+            
+            this.server.emit('leavedRoom', {
+                message: 'Da roi cuoc tro chuyen',
+            });
+        } else {
+            this.server.emit('leavedRoomFailed', {
+                message: 'Roi cuoc tro chuyen that bai',
+            });
+        }
+    }
+
     @SubscribeMessage('sendMessage')
     async handleSendMessage(
         @ConnectedSocket() client: Socket,
@@ -144,7 +171,6 @@ export class ChatGateway
             sendMessage,
         );
         console.log(StartedChat);
-        
 
         if (StartedChat === RoomStatus.STARTCHAT) {
             this.server

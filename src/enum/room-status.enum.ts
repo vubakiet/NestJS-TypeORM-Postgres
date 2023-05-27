@@ -5,4 +5,5 @@ export enum RoomStatus {
     STARTCHAT = 'startchat',
     NOTEXISTSUSER = 'notexistsuser',
     EXISTSUSER = 'existsuser',
+    USERROOMEXISTED = 'userroomexisted',
 }
