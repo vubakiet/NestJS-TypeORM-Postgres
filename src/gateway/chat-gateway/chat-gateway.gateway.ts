@@ -9,14 +9,15 @@ import {
     OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { CreateRoomDto } from './dtos/create-room.dto';
+import { JoinRoomDto } from './dtos/join-room.dto';
+import { ChatGatewayService } from './chat-gateway.service';
+import { RoomStatus } from 'src/enum/room-status.enum';
+import { SendMessageDto } from './dtos/send-message.dto';
 
 interface User {
     id: string;
     name: string;
-}
-
-interface JoinConversationDto{
-    conversation_id: number;
 }
 
 @WebSocketGateway({
@@ -27,6 +28,8 @@ interface JoinConversationDto{
 export class ChatGateway
     implements OnModuleInit, OnGatewayConnection, OnGatewayDisconnect
 {
+    constructor(private chatService: ChatGatewayService) {}
+
     @WebSocketServer()
     server: Server;
 
@@ -43,6 +46,7 @@ export class ChatGateway
             id: client.id,
             name: `User: ${client.id}`,
         };
+
         this.connectedUsers.push(user);
         this.server.emit('users', this.connectedUsers);
     }
@@ -57,28 +61,103 @@ export class ChatGateway
         }
     }
 
-    @SubscribeMessage('joinRoom')
-    handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() data: JoinConversationDto){
-        console.log('Joining room:', data.conversation_id?.toString());
-        console.log(client.id);
-        
-        client.join(data.conversation_id?.toString())        
-        this.server.to(data.conversation_id?.toString()).emit('JoinedRoom', {message: 'success'})
-    }
-
-    @SubscribeMessage('newMessage')
-    handleMessage(
+    @SubscribeMessage('createRoom')
+    async handleCreateRoom(
         @ConnectedSocket() client: Socket,
-        @MessageBody() payload: any,
+        @MessageBody() createRoom: CreateRoomDto,
     ) {
-        console.log(payload);
+        const token = client.handshake.headers.authorization;
 
-        this.server.emit('onMessage', {
-            socketId: client.id,
-            msg: 'NEW MESSAGE',
-            content: payload,
-        });
+        // console.log(createRoom.room_name?.toString());
+        const existedRoom = await this.chatService.handleCreateRoom(
+            token,
+            createRoom,
+        );
+        if (existedRoom === RoomStatus.ROOMCREATED) {
+            client.join(createRoom.room_name?.toString());
+            const StartedChat = await this.chatService.handleJoinRoom(
+                token,
+                createRoom,
+            );
+
+            // console.log(StartedChat);
+
+            if (StartedChat === RoomStatus.STARTCHAT) {
+                this.server
+                    .to(createRoom.room_name?.toString())
+                    .emit('joinedRoom', { message: 'success' });
+            } else {
+                this.server.emit('joinRoomFailed', {
+                    message: 'Faild to join Room',
+                });
+            }
+            this.server.emit('createdRoom', { message: 'create successfully' });
+        } else {
+            this.server.emit('createdRoomError', {
+                message: 'failed to create room',
+            });
+        }
     }
 
+    @SubscribeMessage('joinRoom')
+    async handleJoinRoom(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() joinRoom: JoinRoomDto,
+    ) {
+        console.log('Joining room:', joinRoom.room_name?.toString());
+        // console.log(client);
+        const token = client.handshake.headers.authorization;
 
+        if (token) {
+            client.join(joinRoom.room_name?.toString());
+        }
+
+        // console.log(client.rooms);
+
+        const StartedChat = await this.chatService.handleJoinRoom(
+            token,
+            joinRoom,
+        );
+
+        // console.log(StartedChat);
+
+        if (StartedChat === RoomStatus.STARTCHAT) {
+            this.server
+                .to(joinRoom.room_name?.toString())
+                .emit('joinedRoom', { message: 'success' });
+        } else {
+            this.server.emit('joinRoomFailed', {
+                message: 'Faild to join Room',
+            });
+        }
+    }
+
+    @SubscribeMessage('sendMessage')
+    async handleSendMessage(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() sendMessage: SendMessageDto,
+    ) {
+        const token = client.handshake.headers.authorization;
+
+        const StartedChat = await this.chatService.handleSendMessage(
+            token,
+            sendMessage,
+        );
+        console.log(StartedChat);
+        
+
+        if (StartedChat === RoomStatus.STARTCHAT) {
+            this.server
+                .to(sendMessage.room_name?.toString())
+                .emit('onMessage', {
+                    socketId: client.id,
+                    msg: 'NEW MESSAGE',
+                    content: sendMessage.content,
+                });
+        } else {
+            this.server.emit('onMessageFailed', {
+                message: 'send message failed',
+            });
+        }
+    }
 }
