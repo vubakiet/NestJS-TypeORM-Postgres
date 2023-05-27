@@ -76,6 +76,7 @@ export class ChatGateway
         );
         if (existedRoom === RoomStatus.ROOMCREATED) {
             client.join(createRoom.room_name?.toString());
+
             const StartedChat = await this.chatService.handleJoinRoom(
                 token,
                 createRoom,
@@ -115,13 +116,12 @@ export class ChatGateway
             client.join(joinRoom.room_name?.toString());
         }
 
-        // console.log(client.rooms);
-
         const StartedChat = await this.chatService.handleJoinRoom(
             token,
             joinRoom,
         );
 
+        console.log(client.rooms);
         // console.log(StartedChat);
 
         if (StartedChat === RoomStatus.STARTCHAT) {
@@ -146,6 +146,7 @@ export class ChatGateway
             token,
             leaveRoom,
         );
+        console.log(response);
 
         if (response === RoomStatus.USERROOMEXISTED) {
             client.leave(leaveRoom.room_name);
@@ -173,7 +174,10 @@ export class ChatGateway
             sendMessage,
         );
 
-        if (StartedChat === RoomStatus.STARTCHAT) {
+        if (
+            StartedChat === RoomStatus.STARTCHAT &&
+            client.rooms.has(sendMessage.room_name?.toString())
+        ) {
             console.log(client.rooms);
 
             this.server

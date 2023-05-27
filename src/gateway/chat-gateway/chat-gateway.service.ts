@@ -122,15 +122,26 @@ export class ChatGatewayService {
             return RoomStatus.NOTEXISTSROOM;
         }
 
-        const messageCreating = this.messageRepository.create({
-            content: content,
-            user: { id: user.id },
-            room: { id: room.id },
+        const userRoom = await this.messageRepository.findOne({
+            where: {
+                user: { id: user.id },
+                room: { id: room.id },
+            },
         });
-        console.log(messageCreating);
 
-        await this.messageRepository.save(messageCreating);
+        if (userRoom) {
+            const messageCreating = this.messageRepository.create({
+                content: content,
+                user: { id: user.id },
+                room: { id: room.id },
+            });
+            console.log(messageCreating);
 
-        return RoomStatus.STARTCHAT;
+            await this.messageRepository.save(messageCreating);
+
+            return RoomStatus.STARTCHAT;
+        } else {
+            return RoomStatus.STARTFAILED;
+        }
     }
 }
