@@ -122,7 +122,7 @@ export class ChatGateway
             joinRoom,
         );
 
-        // console.log(StartedChat);
+        console.log(StartedChat);
 
         if (StartedChat === RoomStatus.STARTCHAT) {
             this.server
@@ -172,17 +172,22 @@ export class ChatGateway
             token,
             sendMessage,
         );
+        if (client.rooms.has(sendMessage.room_name)) {
+            if (StartedChat === RoomStatus.STARTCHAT) {
+                console.log(client.rooms);
 
-        if (StartedChat === RoomStatus.STARTCHAT) {
-            console.log(client.rooms);
-
-            this.server
-                .to(sendMessage.room_name?.toString())
-                .emit('onMessage', {
-                    socketId: client.id,
-                    msg: 'NEW MESSAGE',
-                    content: sendMessage.content,
+                this.server
+                    .to(sendMessage.room_name?.toString())
+                    .emit('onMessage', {
+                        socketId: client.id,
+                        msg: 'NEW MESSAGE',
+                        content: sendMessage.content,
+                    });
+            } else {
+                this.server.emit('onMessageFailed', {
+                    message: 'send message failed',
                 });
+            }
         } else {
             this.server.emit('onMessageFailed', {
                 message: 'send message failed',
