@@ -15,6 +15,7 @@ import { ChatGatewayService } from './chat-gateway.service';
 import { RoomStatus } from 'src/enum/room-status.enum';
 import { SendMessageDto } from './dtos/send-message.dto';
 import { LeaveRoomDto } from './dtos/leave-room.dto';
+import { ConnectionStatus } from 'src/enum';
 
 interface User {
     id: string;
@@ -42,23 +43,45 @@ export class ChatGateway
 
     connectedUsers: User[] = [];
 
-    handleConnection(client: Socket, ...args: any[]) {
-        const user: User = {
-            id: client.id,
-            name: `User: ${client.id}`,
-        };
+    async handleConnection(client: Socket, ...args: any[]) {
+        const token = client.handshake.headers.authorization;
 
-        this.connectedUsers.push(user);
-        this.server.emit('users', this.connectedUsers);
+        const StartConnection = await this.chatService.handleConnection(
+            client.id,
+            token,
+        );
+
+        if (StartConnection === RoomStatus.STARTCONNECTION) {
+            const user: User = {
+                id: client.id,
+                name: `User: ${client.id}`,
+            };
+
+            this.connectedUsers.push(user);
+            this.server.emit('users', this.connectedUsers);
+        } else {
+            this.server.emit('ConnectedFailed', {
+                message: 'User not connected',
+            });
+        }
     }
 
-    handleDisconnect(client: Socket) {
-        const index = this.connectedUsers.findIndex(
-            (user) => user.id === client.id,
+    async handleDisconnect(client: Socket) {
+        const userDisconnect = await this.chatService.handleDisconnect(
+            client.id,
         );
-        if (index !== -1) {
-            this.connectedUsers.splice(index, 1);
-            this.server.emit('users', this.connectedUsers);
+        if (userDisconnect === ConnectionStatus.DISCONNECT) {
+            const index = this.connectedUsers.findIndex(
+                (user) => user.id === client.id,
+            );
+            if (index !== -1) {
+                this.connectedUsers.splice(index, 1);
+                this.server.emit('users', this.connectedUsers);
+            }
+        } else {
+            this.server.emit('DisconnectFailed', {
+                message: 'User not disconnect',
+            });
         }
     }
 
@@ -161,6 +184,64 @@ export class ChatGateway
         }
     }
 
+    @SubscribeMessage('joinChat')
+    async handleJoinChat(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() joinChat: JoinRoomDto,
+    ) {
+        const token = client.handshake.headers.authorization;
+
+        if (client.rooms.has(joinChat.room_name)) {
+            const response = await this.chatService.handleJoinChat(
+                token,
+                joinChat,
+            );
+
+            if (response === ConnectionStatus.JOINEDCHAT) {
+                this.server.emit('joinedChat', {
+                    message: 'User da join chat',
+                });
+            } else {
+                this.server.emit('joinChatFailed', {
+                    message: 'User join chat that bai',
+                });
+            }
+        } else {
+            this.server.emit('joinChatFailed', {
+                message: 'User chua join room ',
+            });
+        }
+    }
+
+    @SubscribeMessage('leaveChat')
+    async handleLeaveChat(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() leaveChat: JoinRoomDto,
+    ) {
+        const token = client.handshake.headers.authorization;
+
+        if (client.rooms.has(leaveChat.room_name)) {
+            const response = await this.chatService.handleLeaveChat(
+                token,
+                leaveChat,
+            );
+
+            if (response === ConnectionStatus.LEAVEDCHAT) {
+                this.server.emit('leavedChat', {
+                    message: 'User da join chat',
+                });
+            } else {
+                this.server.emit('leaveChatFailed', {
+                    message: 'User join chat that bai',
+                });
+            }
+        } else {
+            this.server.emit('leaveChatFailed', {
+                message: 'User chua join room ',
+            });
+        }
+    }
+
     @SubscribeMessage('sendMessage')
     async handleSendMessage(
         @ConnectedSocket() client: Socket,
@@ -168,30 +249,50 @@ export class ChatGateway
     ) {
         const token = client.handshake.headers.authorization;
 
-        const StartedChat = await this.chatService.handleSendMessage(
+        const StartedChat: any = await this.chatService.handleSendMessage(
             token,
             sendMessage,
         );
-        if (client.rooms.has(sendMessage.room_name)) {
-            if (StartedChat === RoomStatus.STARTCHAT) {
-                console.log(client.rooms);
+        // if (client.rooms.has(sendMessage.room_name)) {
+        // if (StartedChat === RoomStatus.STARTJOINCHAT) {
+            console.log(client.rooms);
+            console.log(StartedChat);
+            
 
-                this.server
-                    .to(sendMessage.room_name?.toString())
-                    .emit('onMessage', {
-                        socketId: client.id,
-                        msg: 'NEW MESSAGE',
-                        content: sendMessage.content,
-                    });
-            } else {
-                this.server.emit('onMessageFailed', {
-                    message: 'send message failed',
+            this.server
+                .to(sendMessage.room_name?.toString())
+                .emit('onMessage', {
+                    socketId: client.id,
+                    msg: 'NEW MESSAGE',
+                    content: sendMessage.content,
                 });
-            }
-        } else {
-            this.server.emit('onMessageFailed', {
-                message: 'send message failed',
-            });
+        // } else {
+            // if (StartedChat.status === RoomStatus.STARTLEAVECHAT) {
+                // console.log('status: ' + StartedChat.status);
+
+                // console.log(StartedChat.listUserLeaveChat);
+
+                    this.server.to(StartedChat).emit('onMessageLeavedChat', {
+                        message: 'Ban co thong bao moi',
+                    });
+
+                // this.server
+                //     .to(sendMessage.room_name?.toString())
+                //     .emit('onMessage', {
+                //         socketId: client.id,
+                //         msg: 'NEW MESSAGE',
+                //         content: sendMessage.content,
+                //     });
+            // } else {
+            //     this.server.emit('onMessageFailed', {
+            //         message: 'send message failed',
+            //     });
+            // }
         }
-    }
+        // } else {
+        //     this.server.emit('onMessageFailed', {
+        //         message: 'send message failed',
+        //     });
+        // }
+    // }
 }

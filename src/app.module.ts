@@ -15,6 +15,7 @@ import { CommentEntity } from './entities/comment.entity';
 import { GatewayModule } from './gateway/gateway.module';
 import { RoomEntity } from './entities/room.entity';
 import { MessageEntity } from './entities/message.entity';
+import { ConnectionEntity } from './entities/connection.entity';
 
 @Module({
     imports: [
@@ -40,6 +41,7 @@ import { MessageEntity } from './entities/message.entity';
                 CommentEntity,
                 RoomEntity,
                 MessageEntity,
+                ConnectionEntity,
             ],
             synchronize: true,
         }),

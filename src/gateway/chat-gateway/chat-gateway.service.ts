@@ -9,6 +9,8 @@ import { RoomStatus } from 'src/enum/room-status.enum';
 import { JoinRoomDto } from './dtos/join-room.dto';
 import { SendMessageDto } from './dtos/send-message.dto';
 import { LeaveRoomDto } from './dtos/leave-room.dto';
+import { ConnectionEntity } from 'src/entities/connection.entity';
+import { ConnectionStatus } from 'src/enum';
 
 @Injectable()
 export class ChatGatewayService {
@@ -19,7 +21,44 @@ export class ChatGatewayService {
         private roomRepository: Repository<RoomEntity>,
         @InjectRepository(MessageEntity)
         private messageRepository: Repository<MessageEntity>,
+        @InjectRepository(ConnectionEntity)
+        private connectionRepository: Repository<ConnectionEntity>,
     ) {}
+
+    async handleConnection(socketId: string, token: string) {
+        const user = await this.userRepository.findOneBy({
+            access_token: token,
+        });
+
+        if (!user) {
+            return RoomStatus.NOTEXISTSUSER;
+        }
+
+        const userConnection = await this.connectionRepository.findOne({
+            where: {
+                user: { id: user.id },
+                status: ConnectionStatus.JOINEDCHAT,
+            },
+            relations: { room: true },
+        });
+
+        const userConnectionCreated = this.connectionRepository.create({
+            socketId,
+            status: userConnection
+                ? ConnectionStatus.JOINEDCHAT
+                : ConnectionStatus.LEAVEDCHAT,
+            user: { id: user.id },
+            room: { id: userConnection?.room?.id || null },
+        });
+        await this.connectionRepository.save(userConnectionCreated);
+
+        return RoomStatus.STARTCONNECTION;
+    }
+
+    async handleDisconnect(socketId: string) {
+        await this.connectionRepository.delete({ socketId });
+        return ConnectionStatus.DISCONNECT;
+    }
 
     async handleCreateRoom(token: string, createRoom: CreateRoomDto) {
         const { room_name } = createRoom;
@@ -71,6 +110,11 @@ export class ChatGatewayService {
 
         await this.messageRepository.save(messageCreating);
 
+        await this.connectionRepository.update(
+            { user: { id: user.id } },
+            { status: ConnectionStatus.JOINEDCHAT, room: { id: room.id } },
+        );
+
         return RoomStatus.STARTCHAT;
     }
 
@@ -103,6 +147,56 @@ export class ChatGatewayService {
         }
     }
 
+    async handleJoinChat(token: string, joinChat: JoinRoomDto) {
+        const { room_name } = joinChat;
+
+        const room = await this.roomRepository.findOneBy({
+            name: room_name,
+        });
+        if (!room) {
+            return RoomStatus.NOTEXISTSROOM;
+        }
+
+        const user = await this.userRepository.findOneBy({
+            access_token: token,
+        });
+        if (!user) {
+            return RoomStatus.NOTEXISTSUSER;
+        }
+
+        await this.connectionRepository.update(
+            { user: { id: user.id } },
+            { status: ConnectionStatus.JOINEDCHAT },
+        );
+
+        return ConnectionStatus.JOINEDCHAT;
+    }
+
+    async handleLeaveChat(token: string, leaveChat: LeaveRoomDto) {
+        const { room_name } = leaveChat;
+
+        const room = await this.roomRepository.findOneBy({
+            name: room_name,
+        });
+        if (!room) {
+            return RoomStatus.NOTEXISTSROOM;
+        }
+
+        const user = await this.userRepository.findOneBy({
+            access_token: token,
+        });
+        if (!user) {
+            return RoomStatus.NOTEXISTSUSER;
+        }
+
+        await this.connectionRepository.update(
+            { user: { id: user.id } },
+            { status: ConnectionStatus.LEAVEDCHAT },
+        );
+
+        return ConnectionStatus.LEAVEDCHAT;
+    }
+
     async handleSendMessage(token: string, sendMessage: SendMessageDto) {
         const { content, room_name } = sendMessage;
 
@@ -122,15 +216,33 @@ export class ChatGatewayService {
             return RoomStatus.NOTEXISTSROOM;
         }
 
+        const userJoinedChat = await this.connectionRepository.findOneBy({
+            user: { id: user.id },
+            status: ConnectionStatus.JOINEDCHAT,
+        });
+
+        const userLeavedChat = await this.connectionRepository.find({
+            where: {
+                status: ConnectionStatus.LEAVEDCHAT,
+            },
+        });
+
         const messageCreating = this.messageRepository.create({
             content: content,
             user: { id: user.id },
             room: { id: room.id },
         });
-        console.log(messageCreating);
 
         await this.messageRepository.save(messageCreating);
 
-        return RoomStatus.STARTCHAT;
+        // if (userJoinedChat) {
+        //     return RoomStatus.STARTJOINCHAT;
+        // }
+
+        // if (userLeavedChat) {
+        const listUserLeaveChat = userLeavedChat.map((user) => user.socketId);
+
+        return listUserLeaveChat;
+        // }
     }
 }
