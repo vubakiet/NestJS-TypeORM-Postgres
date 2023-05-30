@@ -4,7 +4,10 @@ export enum RoomStatus {
     ROOMCREATED = 'roomcreated',
     STARTCHAT = 'startchat',
     STARTFAILED = 'startfailed',
+    STARTJOINCHAT = 'startjoinchat',
+    STARTLEAVECHAT = 'startleavechat',
     NOTEXISTSUSER = 'notexistsuser',
     EXISTSUSER = 'existsuser',
     USERROOMEXISTED = 'userroomexisted',
+    STARTCONNECTION = 'startconnection',
 }
