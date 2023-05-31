@@ -1,6 +1,13 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    Entity,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { RoomEntity } from './room.entity';
 import { UserEntity } from './user.entity';
+import { ReactionMessageEntity } from './reaction-message.entity';
 
 @Entity('messages')
 export class MessageEntity {
@@ -18,4 +25,10 @@ export class MessageEntity {
 
     @ManyToOne(() => UserEntity, (user) => user.id)
     user: UserEntity;
+
+    @OneToMany(
+        () => ReactionMessageEntity,
+        (reactMessage) => reactMessage.message,
+    )
+    reactionMessage: ReactionMessageEntity;
 }

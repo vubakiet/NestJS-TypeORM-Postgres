@@ -16,6 +16,9 @@ import { GatewayModule } from './gateway/gateway.module';
 import { RoomEntity } from './entities/room.entity';
 import { MessageEntity } from './entities/message.entity';
 import { ConnectionEntity } from './entities/connection.entity';
+import { ReactionMessageEntity } from './entities/reaction-message.entity';
+import { EmojiEntity } from './entities/emoji.entity';
+import { EmojiModule } from './emoji/emoji.module';
 
 @Module({
     imports: [
@@ -42,11 +45,14 @@ import { ConnectionEntity } from './entities/connection.entity';
                 RoomEntity,
                 MessageEntity,
                 ConnectionEntity,
+                ReactionMessageEntity,
+                EmojiEntity
             ],
             synchronize: true,
         }),
         AuthModule,
         GatewayModule,
+        EmojiModule,
     ],
     controllers: [AppController],
     providers: [AppService],

@@ -11,6 +11,7 @@ import { NotificationModule } from './notification/notification.module';
 import { PostModule } from './post/post.module';
 import { ReactionModule } from './reaction/reaction.module';
 import { CommentModule } from './comment/comment.module';
+import { MessageModule } from './message/message.module';
 
 @Module({
     imports: [
@@ -21,6 +22,7 @@ import { CommentModule } from './comment/comment.module';
         PostModule,
         ReactionModule,
         CommentModule,
+        MessageModule,
     ],
     controllers: [UsersController],
     providers: [UsersService],

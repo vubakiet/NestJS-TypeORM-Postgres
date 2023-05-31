@@ -12,6 +12,7 @@ import { Role } from 'src/auth/enum';
 import { PostEntity } from './post.entity';
 import { CommentEntity } from './comment.entity';
 import { MessageEntity } from './message.entity';
+import { ReactionMessageEntity } from './reaction-message.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -61,4 +62,7 @@ export class UserEntity {
 
     @OneToMany(() => MessageEntity, (message) => message.user)
     user_message?: MessageEntity[];
+
+    @OneToMany(() => ReactionMessageEntity, (reactMessage) => reactMessage.user)
+    reactMessage: ReactionMessageEntity;
 }

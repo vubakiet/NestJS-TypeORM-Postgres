@@ -11,6 +11,9 @@ import { SendMessageDto } from './dtos/send-message.dto';
 import { LeaveRoomDto } from './dtos/leave-room.dto';
 import { ConnectionEntity } from 'src/entities/connection.entity';
 import { ConnectionStatus } from 'src/enum';
+import { EmojiEntity } from 'src/entities/emoji.entity';
+import { ReactionMessageEntity } from 'src/entities/reaction-message.entity';
+import { ReactionMessageDto } from './dtos/reaction-message.dto';
 
 @Injectable()
 export class ChatGatewayService {
@@ -23,6 +26,10 @@ export class ChatGatewayService {
         private messageRepository: Repository<MessageEntity>,
         @InjectRepository(ConnectionEntity)
         private connectionRepository: Repository<ConnectionEntity>,
+        @InjectRepository(EmojiEntity)
+        private emojiRepository: Repository<EmojiEntity>,
+        @InjectRepository(ReactionMessageEntity)
+        private reactionMessageRepository: Repository<ReactionMessageEntity>,
     ) {}
 
     async handleConnection(socketId: string, token: string) {
@@ -191,7 +198,7 @@ export class ChatGatewayService {
 
         await this.connectionRepository.update(
             { user: { id: user.id } },
-            { status: ConnectionStatus.LEAVEDCHAT },
+            { status: ConnectionStatus.LEAVEDCHAT, room: { id: null } },
         );
 
         return ConnectionStatus.LEAVEDCHAT;
@@ -221,7 +228,7 @@ export class ChatGatewayService {
                 user: { id: user.id },
                 room: { id: room.id },
             },
-        })
+        });
         const userJoinedChat = await this.connectionRepository.findOneBy({
             user: { id: user.id },
             status: ConnectionStatus.JOINEDCHAT,
@@ -233,11 +240,7 @@ export class ChatGatewayService {
             },
         });
 
-        const messageCreating = this.messageRepository.create({
-            content: content,
-            user: { id: user.id },
-            room: { id: room.id },
-        });
+        console.log(userLeavedChat);
 
         if (userRoom) {
             const messageCreating = this.messageRepository.create({
@@ -249,18 +252,82 @@ export class ChatGatewayService {
 
             await this.messageRepository.save(messageCreating);
 
-            return RoomStatus.STARTCHAT;
-        } else {
-            return RoomStatus.STARTFAILED;
+            //     return RoomStatus.STARTCHAT;
+            // } else {
+            //     return RoomStatus.STARTFAILED;
+            // }
+            // if (userJoinedChat) {
+            //     return RoomStatus.STARTJOINCHAT;
+            // }
+
+            if (userLeavedChat.length != 0) {
+                const listUserLeaveChat = userLeavedChat.map(
+                    (user) => user.socketId,
+                );
+
+                return listUserLeaveChat;
+            }
         }
-        // if (userJoinedChat) {
-        //     return RoomStatus.STARTJOINCHAT;
-        // }
+    }
 
-        // if (userLeavedChat) {
-        const listUserLeaveChat = userLeavedChat.map((user) => user.socketId);
+    async handleReactionMessage(
+        token: string,
+        reactionMessage: ReactionMessageDto,
+    ) {
+        const { messageId, emojiId } = reactionMessage;
 
-        return listUserLeaveChat;
-        // }
+        const user = await this.userRepository.findOne({
+            where: {
+                access_token: token,
+            },
+        });
+
+        if (!user) {
+            return 'Khong ton tai user';
+        }
+
+        const message = await this.messageRepository.findOne({
+            where: { id: messageId },
+            relations: { reactionMessage: true },
+        });
+
+        if (!message) {
+            return 'Khong ton tai message';
+        }
+
+        const emoji = await this.emojiRepository.findOneBy({ id: emojiId });
+
+        if (!emoji) {
+            return 'Khong ton tai emoji';
+        }
+
+        const messageEmoji = await this.reactionMessageRepository.findOne({
+            where: {
+                message: { id: messageId },
+                user: { id: user.id },
+                emoji: { id: emojiId },
+            },
+        });
+
+        if (messageEmoji) {
+            await this.reactionMessageRepository.update(
+                { message: { id: messageId }, user: { id: user.id } },
+                { quantity: messageEmoji.quantity + 1 },
+            );
+
+            return "Da cap nhat"
+        }
+
+        const reactMessageCreating = this.reactionMessageRepository.create({
+            message: { id: messageId },
+            user: { id: user.id },
+            emoji: { id: emojiId },
+        });
+
+        const reactMessageSaved = await this.reactionMessageRepository.save(
+            reactMessageCreating,
+        );
+
+        return reactMessageSaved;
     }
 }

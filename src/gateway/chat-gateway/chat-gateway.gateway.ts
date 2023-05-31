@@ -16,6 +16,7 @@ import { RoomStatus } from 'src/enum/room-status.enum';
 import { SendMessageDto } from './dtos/send-message.dto';
 import { LeaveRoomDto } from './dtos/leave-room.dto';
 import { ConnectionStatus } from 'src/enum';
+import { ReactionMessageDto } from './dtos/reaction-message.dto';
 
 interface User {
     id: string;
@@ -251,20 +252,11 @@ export class ChatGateway
     ) {
         const token = client.handshake.headers.authorization;
 
-        const StartedChat: any = await this.chatService.handleSendMessage(
-            token,
-            sendMessage,
-        );
-
-        if (
-            StartedChat === RoomStatus.STARTCHAT &&
-            client.rooms.has(sendMessage.room_name?.toString())
-        ) {
-        // if (client.rooms.has(sendMessage.room_name)) {
-        // if (StartedChat === RoomStatus.STARTJOINCHAT) {
-            console.log(client.rooms);
-            console.log(StartedChat);
-            
+        if (client.rooms.has(sendMessage.room_name)) {
+            const StartedChat: any = await this.chatService.handleSendMessage(
+                token,
+                sendMessage,
+            );
 
             this.server
                 .to(sendMessage.room_name?.toString())
@@ -273,33 +265,34 @@ export class ChatGateway
                     msg: 'NEW MESSAGE',
                     content: sendMessage.content,
                 });
-        // } else {
-            // if (StartedChat.status === RoomStatus.STARTLEAVECHAT) {
-                // console.log('status: ' + StartedChat.status);
 
-                // console.log(StartedChat.listUserLeaveChat);
-
-                    this.server.to(StartedChat).emit('onMessageLeavedChat', {
-                        message: 'Ban co thong bao moi',
-                    });
-                }
-                // this.server
-                //     .to(sendMessage.room_name?.toString())
-                //     .emit('onMessage', {
-                //         socketId: client.id,
-                //         msg: 'NEW MESSAGE',
-                //         content: sendMessage.content,
-                //     });
-            // } else {
-            //     this.server.emit('onMessageFailed', {
-            //         message: 'send message failed',
-            //     });
-            // }
+            this.server.to(StartedChat).emit('onMessageLeavedChat', {
+                message: 'Ban co thong bao moi',
+            });
+        } else {
+            this.server.emit('onMessageFailed', {
+                message: 'send message failed',
+            });
         }
-        // } else {
-        //     this.server.emit('onMessageFailed', {
-        //         message: 'send message failed',
-        //     });
-        // }
-    // }
+    }
+
+    @SubscribeMessage('reactMessage')
+    async handleReactionMessage(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() reactionMessage: ReactionMessageDto,
+    ) {
+        const token = client.handshake.headers.authorization;
+
+        const response: any = await this.chatService.handleReactionMessage(
+            token,
+            reactionMessage,
+        );
+        if (response) {
+            this.server.emit('reactedMessage', { message: response });
+        } else {
+            this.server.emit('reactMessageFaild', {
+                message: 'React message failed',
+            });
+        }
+    }
 }
