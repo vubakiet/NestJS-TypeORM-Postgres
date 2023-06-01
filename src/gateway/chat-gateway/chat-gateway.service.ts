@@ -274,7 +274,7 @@ export class ChatGatewayService {
         token: string,
         reactionMessage: ReactionMessageDto,
     ) {
-        const { messageId, emojiId } = reactionMessage;
+        const { messageId, emojiId, room_name } = reactionMessage;
 
         const user = await this.userRepository.findOne({
             where: {
@@ -286,8 +286,13 @@ export class ChatGatewayService {
             return 'Khong ton tai user';
         }
 
+        const room = await this.roomRepository.findOneBy({ name: room_name });
+        if (!room) {
+            return 'Khong ton tai room';
+        }
+
         const message = await this.messageRepository.findOne({
-            where: { id: messageId },
+            where: { id: messageId, room: { id: room.id } },
             relations: { reactionMessage: true },
         });
 
@@ -311,11 +316,15 @@ export class ChatGatewayService {
 
         if (messageEmoji) {
             await this.reactionMessageRepository.update(
-                { message: { id: messageId }, user: { id: user.id } },
+                {
+                    message: { id: messageId },
+                    user: { id: user.id },
+                    emoji: { id: emojiId },
+                },
                 { quantity: messageEmoji.quantity + 1 },
             );
 
-            return "Da cap nhat"
+            return 'Da cap nhat';
         }
 
         const reactMessageCreating = this.reactionMessageRepository.create({

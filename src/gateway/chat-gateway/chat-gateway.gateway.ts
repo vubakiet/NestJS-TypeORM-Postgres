@@ -283,12 +283,18 @@ export class ChatGateway
     ) {
         const token = client.handshake.headers.authorization;
 
-        const response: any = await this.chatService.handleReactionMessage(
-            token,
-            reactionMessage,
-        );
-        if (response) {
-            this.server.emit('reactedMessage', { message: response });
+        if (client.rooms.has(reactionMessage.room_name)) {
+            const response: any = await this.chatService.handleReactionMessage(
+                token,
+                reactionMessage,
+            );
+            if (response) {
+                this.server.emit('reactedMessage', { message: response });
+            } else {
+                this.server.emit('reactMessageFaild', {
+                    message: 'React message failed',
+                });
+            }
         } else {
             this.server.emit('reactMessageFaild', {
                 message: 'React message failed',
